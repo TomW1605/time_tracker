@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     <script>
         function loadSessions() {
-            fetch('/api/get_sessions')
+            fetch("{{ url_for('api_get_sessions') }}")
             .then(response => response.json())
             .then(data => {
                 const tableBody = document.getElementById('sessionsTableBody');
@@ -38,7 +38,7 @@
 
                     const editCell = document.createElement('td');
                     const editLink = document.createElement('a');
-                    editLink.href = `/edit/${session.id}`;
+                    editLink.href = "{{ url_for('edit', id=0) }}" + session.id;
                     editLink.textContent = 'Edit';
                     editCell.appendChild(editLink);
                     row.appendChild(editCell);

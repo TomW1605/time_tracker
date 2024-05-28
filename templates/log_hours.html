@@ -8,7 +8,7 @@
             const date = document.getElementById('date').value;
             const hoursWorked = document.getElementById('hours_worked').value;
 
-            fetch('/api/log_hours', {
+            fetch("{{ url_for('api_log_hours') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -18,7 +18,7 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                window.location.href = '/summary';
+                window.location.href = "{{ url_for('summary') }}";
             })
             .catch(error => console.error('Error:', error));
         }

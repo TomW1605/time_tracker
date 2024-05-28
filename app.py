@@ -6,8 +6,15 @@ from datetime import datetime, timedelta
 
 # get env variables
 port = int(os.getenv('PORT', 5000))
+base_url = os.getenv('BASE_URL', '/time_tracker')
 
-app = Flask(__name__)
+# Ensure base_url has leading and trailing slashes
+if not base_url.startswith('/'):
+    base_url = '/' + base_url
+if not base_url.endswith('/'):
+    base_url = base_url + '/'
+
+app = Flask(__name__, static_url_path=base_url + 'static')
 
 # Ensure the config directory exists
 os.makedirs('/config', exist_ok=True)
@@ -27,34 +34,34 @@ class WorkSession(db.Model):
     def __repr__(self):
         return f'<WorkSession({self.id}, {self.session_type}, {self.date}, {self.hours_worked}, {self.clock_in_time}, {self.clock_out_time})>'
 
-@app.route('/')
+@app.route(base_url)
 def index():
     return render_template('index.html')
 
-@app.route('/log_hours', methods=['GET'])
+@app.route(base_url + 'log_hours', methods=['GET'])
 def log_hours():
     current_date = datetime.now().strftime('%Y-%m-%d')
     return render_template('log_hours.html', current_date=current_date)
 
-@app.route('/clock_in', methods=['GET'])
+@app.route(base_url + 'clock_in', methods=['GET'])
 def clock_in():
     current_time = datetime.now().strftime('%H:%M:%S')
     return render_template('clock_in.html', current_time=current_time)
 
-@app.route('/clock_out', methods=['GET'])
+@app.route(base_url + 'clock_out', methods=['GET'])
 def clock_out():
     current_time = datetime.now().strftime('%H:%M:%S')
     return render_template('clock_out.html', current_time=current_time)
 
-@app.route('/summary')
+@app.route(base_url + 'summary')
 def summary():
     return render_template('summary.html')
 
-@app.route('/edit/<int:id>', methods=['GET'])
+@app.route(base_url + 'edit/<int:id>', methods=['GET'])
 def edit(id):
     return render_template('edit.html', session_id=id)
 
-@app.route('/api/hours_this_week')
+@app.route(base_url + 'api/hours_this_week')
 def api_hours_this_week():
     now = datetime.now()
     start_of_week = now - timedelta(days=now.weekday())
@@ -63,7 +70,7 @@ def api_hours_this_week():
     total_hours = sum(session.hours_worked for session in sessions)
     return jsonify({'hours_this_week': round(total_hours, 1)})
 
-@app.route('/api/log_hours', methods=['POST'])
+@app.route(base_url + 'api/log_hours', methods=['POST'])
 def api_log_hours():
     data = request.get_json()
     date = data['date']
@@ -73,7 +80,7 @@ def api_log_hours():
     db.session.commit()
     return jsonify({'message': 'Logged hours successfully'}), 201
 
-@app.route('/api/clock_in', methods=['POST'])
+@app.route(base_url + 'api/clock_in', methods=['POST'])
 def api_clock_in():
     data = request.get_json()
     now = datetime.now()
@@ -86,7 +93,7 @@ def api_clock_in():
     db.session.commit()
     return jsonify({'message': 'Clocked in successfully'}), 201
 
-@app.route('/api/clock_out', methods=['POST'])
+@app.route(base_url + 'api/clock_out', methods=['POST'])
 def api_clock_out():
     data = request.get_json()
     session = WorkSession.query.filter_by(session_type='in/out', clock_out_time=None).order_by(WorkSession.clock_in_time.desc()).first()
@@ -103,7 +110,7 @@ def api_clock_out():
     db.session.commit()
     return jsonify({'message': 'Clocked out successfully'}), 200
 
-@app.route('/api/edit_session/<int:id>', methods=['POST'])
+@app.route(base_url + 'api/edit_session/<int:id>', methods=['POST'])
 def api_edit_session(id):
     data = request.get_json()
     session = WorkSession.query.get_or_404(id)
@@ -119,7 +126,7 @@ def api_edit_session(id):
     db.session.commit()
     return jsonify({'message': 'Session updated successfully'}), 200
 
-@app.route('/api/get_sessions', methods=['GET'])
+@app.route(base_url + 'api/get_sessions', methods=['GET'])
 def api_get_sessions():
     sessions = WorkSession.query.all()
     sessions_list = [
@@ -135,7 +142,7 @@ def api_get_sessions():
     ]
     return jsonify(sessions_list)
 
-@app.route('/api/get_session/<int:id>', methods=['GET'])
+@app.route(base_url + 'api/get_session/<int:id>', methods=['GET'])
 def api_get_session(id):
     session = WorkSession.query.get_or_404(id)
     session_data = {

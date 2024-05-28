@@ -7,7 +7,7 @@
         function clockOut() {
             const clockOutTime = document.getElementById('clock_out_time').value;
 
-            fetch('/api/clock_out', {
+            fetch("{{ url_for('api_clock_out') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -20,7 +20,7 @@
                     alert(data.error);
                 } else {
                     alert(data.message);
-                    window.location.href = '/summary';
+                    window.location.href = "{{ url_for('summary') }}";
                 }
             })
             .catch(error => console.error('Error:', error));

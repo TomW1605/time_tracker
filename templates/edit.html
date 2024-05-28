@@ -5,7 +5,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
     <script>
         function loadSession() {
-            fetch(`/api/get_session/${session_id}`)
+            fetch("{{ url_for('api_get_session', id=session_id) }}")
             .then(response => response.json())
             .then(data => {
                 document.getElementById('date').value = data.date;
@@ -38,7 +38,7 @@
                 clock_out_time: clockOutTime
             };
 
-            fetch(`/api/edit_session/${session_id}`, {
+            fetch("{{ url_for('api_edit_session', id=session_id) }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -48,7 +48,7 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                window.location.href = '/summary';
+                window.location.href = "{{ url_for('summary') }}";
             })
             .catch(error => console.error('Error:', error));
         }
@@ -73,6 +73,7 @@
         </div>
         <input type="submit" value="Update">
     </form>
+    <p><a href="{{ url_for('summary') }}">Back to Summary</a></p>
     <p><a href="{{ url_for('index') }}">Home</a></p>
 </body>
 </html>
