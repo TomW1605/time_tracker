@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Session</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function loadSession() {
+            fetch(`/api/get_session/${session_id}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('date').value = data.date;
+                if (data.session_type === 'hours') {
+                    document.getElementById('hours_worked_container').style.display = 'block';
+                    document.getElementById('hours_worked').value = data.hours_worked;
+                    document.getElementById('clock_in_time_container').style.display = 'none';
+                    document.getElementById('clock_out_time_container').style.display = 'none';
+                } else {
+                    document.getElementById('hours_worked_container').style.display = 'none';
+                    document.getElementById('clock_in_time_container').style.display = 'block';
+                    document.getElementById('clock_out_time_container').style.display = 'block';
+                    document.getElementById('clock_in_time').value = data.clock_in_time;
+                    document.getElementById('clock_out_time').value = data.clock_out_time;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function editSession() {
+            const date = document.getElementById('date').value;
+            const hoursWorked = document.getElementById('hours_worked').value;
+            const clockInTime = document.getElementById('clock_in_time').value;
+            const clockOutTime = document.getElementById('clock_out_time').value;
+
+            const data = {
+                date: date,
+                hours_worked: hoursWorked ? parseFloat(hoursWorked) : null,
+                clock_in_time: clockInTime,
+                clock_out_time: clockOutTime
+            };
+
+            fetch(`/api/edit_session/${session_id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                window.location.href = '/summary';
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSession();
+        });
+    </script>
+</head>
+<body>
+    <h1>Edit Session</h1>
+    <form onsubmit="event.preventDefault(); editSession();">
+        Date: <input type="date" id="date" name="date" required><br>
+        <div id="hours_worked_container">
+            Hours Worked: <input type="number" step="0.1" id="hours_worked" name="hours_worked"><br>
+        </div>
+        <div id="clock_in_time_container">
+            Clock In Time: <input type="time" step="1" id="clock_in_time" name="clock_in_time"><br>
+        </div>
+        <div id="clock_out_time_container">
+            Clock Out Time: <input type="time" step="1" id="clock_out_time" name="clock_out_time"><br>
+        </div>
+        <input type="submit" value="Update">
+    </form>
+    <p><a href="{{ url_for('index') }}">Home</a></p>
+</body>
+</html>

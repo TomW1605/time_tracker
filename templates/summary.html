@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Summary</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        function loadSessions() {
+            fetch('/api/get_sessions')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('sessionsTableBody');
+                data.forEach(session => {
+                    const row = document.createElement('tr');
+
+                    const idCell = document.createElement('td');
+                    idCell.textContent = session.id;
+                    row.appendChild(idCell);
+
+                    const typeCell = document.createElement('td');
+                    typeCell.textContent = session.session_type;
+                    row.appendChild(typeCell);
+
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = session.date;
+                    row.appendChild(dateCell);
+
+                    const hoursWorkedCell = document.createElement('td');
+                    hoursWorkedCell.textContent = session.hours_worked;
+                    row.appendChild(hoursWorkedCell);
+
+                    const clockInCell = document.createElement('td');
+                    clockInCell.textContent = session.clock_in_time;
+                    row.appendChild(clockInCell);
+
+                    const clockOutCell = document.createElement('td');
+                    clockOutCell.textContent = session.clock_out_time;
+                    row.appendChild(clockOutCell);
+
+                    const editCell = document.createElement('td');
+                    const editLink = document.createElement('a');
+                    editLink.href = `/edit/${session.id}`;
+                    editLink.textContent = 'Edit';
+                    editCell.appendChild(editLink);
+                    row.appendChild(editCell);
+
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSessions();
+        });
+    </script>
+</head>
+<body>
+    <h1>Summary</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Hours Worked</th>
+                <th>Clock In</th>
+                <th>Clock Out</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody id="sessionsTableBody">
+            <!-- Data will be loaded here by JavaScript -->
+        </tbody>
+    </table>
+    <p><a href="{{ url_for('index') }}">Home</a></p>
+</body>
+</html>
