@@ -3,7 +3,7 @@ FROM python:3.8-slim
 LABEL authors="Thomas White"
 
 # Install dependencies
-RUN pip install --no-cache-dir flask sqlalchemy flask-sqlalchemy
+RUN pip install flask sqlalchemy flask-sqlalchemy
 
 # Create and set the working directory
 WORKDIR /app
@@ -15,4 +15,4 @@ COPY . /app
 RUN mkdir -p /config
 
 # Run the command to start the Flask application
-CMD ["flask", "run"]
+CMD ["python", "app.py"]
