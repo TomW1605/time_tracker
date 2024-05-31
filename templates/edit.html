@@ -53,6 +53,20 @@
             .catch(error => console.error('Error:', error));
         }
 
+        function deleteSession(id) {
+            if (confirm('Are you sure you want to delete this session?')) {
+                fetch("{{ url_for('api_delete_session', id=id) }}", {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = "{{ url_for('summary') }}";
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             loadSession();
         });
@@ -73,7 +87,8 @@
         </div>
         <input type="submit" value="Update">
     </form>
-    <p><a href="{{ url_for('summary') }}">Back to Summary</a></p>
     <p><a href="{{ url_for('index') }}">Home</a></p>
+    <p><a href="{{ url_for('summary') }}">Back to Summary</a></p>
+    <button onclick="deleteSession({{ session_id }})">Delete Session</button>
 </body>
 </html>

@@ -158,6 +158,14 @@ def api_get_session(id):
     }
     return jsonify(session_data)
 
+@app.route(base_url + 'api/delete_session/<int:id>', methods=['DELETE'])
+def api_delete_session(id):
+    session = WorkSession.query.get_or_404(id)
+    db.session.delete(session)
+    db.session.commit()
+    return jsonify({'message': 'Session deleted successfully'}), 200
+
+
 def get_hours_today():
     today = datetime.now().date()
     sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
