@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 # get env variables
 port = int(os.getenv('PORT', 5000))
 base_url = os.getenv('BASE_URL', '/time_tracker')
+lunch_len = os.getenv('LUNCH_LEN', 30)
+hours_per_day = os.getenv('HOURS_PER_DAY', 7.6)
+hours_per_week = os.getenv('HOURS_PER_WEEK', 38)
 
 # Ensure base_url has leading and trailing slashes
 if not base_url.startswith('/'):
@@ -91,7 +94,11 @@ def api_clock_in():
     new_session = WorkSession(session_type='in/out', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
     db.session.commit()
-    return jsonify({'message': 'Clocked in successfully'}), 201
+    leave_no_lunch = clock_in_time + timedelta(hours=hours_per_day-get_hours_today())
+    leave_lunch = leave_no_lunch + timedelta(minutes=lunch_len)
+    return jsonify({'message': 'Clocked in successfully',
+                    'leave_no_lunch': leave_no_lunch,
+                    'leave_lunch': leave_lunch}), 201
 
 @app.route(base_url + 'api/clock_out', methods=['POST'])
 def api_clock_out():
@@ -154,6 +161,12 @@ def api_get_session(id):
         'clock_out_time': session.clock_out_time.strftime('%H:%M:%S') if session.clock_out_time else None
     }
     return jsonify(session_data)
+
+def get_hours_today():
+    today = datetime.now().date()
+    sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
+    total_hours = sum(session.hours_worked for session in sessions)
+    return round(total_hours, 1)
 
 if __name__ == '__main__':
     with app.app_context():
