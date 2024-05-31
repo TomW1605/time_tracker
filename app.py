@@ -88,11 +88,15 @@ def api_clock_in():
     new_session = WorkSession(session_type='in/out', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
     db.session.commit()
-    leave_time = clock_in_time + timedelta(hours=hours_per_day-get_hours_today())
     if date.weekday() == 4: #if friday
         hours_this_week = get_hours_this_week()
+        # print(hours_this_week)
         hours_remaining = hours_per_week-hours_this_week
-        leave_time = leave_time + timedelta(hours=hours_remaining)
+        # print(hours_remaining)
+        leave_time = clock_in_time + timedelta(hours=hours_remaining - get_hours_today())
+        # print(leave_time.strftime('%H:%M:%S'))
+    else:
+        leave_time = clock_in_time + timedelta(hours=hours_per_day - get_hours_today())
     return jsonify({'message': 'Clocked in successfully',
                     'leave_time': leave_time.strftime('%H:%M:%S')}), 201
 
