@@ -7,7 +7,6 @@ from datetime import datetime, timedelta
 # get env variables
 port = int(os.getenv('PORT', 5000))
 base_url = os.getenv('BASE_URL', '/time_tracker')
-lunch_len = os.getenv('LUNCH_LEN', 30)
 hours_per_day = os.getenv('HOURS_PER_DAY', 7.6)
 hours_per_week = os.getenv('HOURS_PER_WEEK', 38)
 
@@ -66,12 +65,7 @@ def edit(id):
 
 @app.route(base_url + 'api/hours_this_week')
 def api_hours_this_week():
-    now = datetime.now()
-    start_of_week = now - timedelta(days=now.weekday())
-    end_of_week = start_of_week + timedelta(days=6)
-    sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked > 0).all()
-    total_hours = sum(session.hours_worked for session in sessions)
-    return jsonify({'hours_this_week': round(total_hours, 1)})
+    return jsonify({'hours_this_week': round(get_hours_this_week(), 1)})
 
 @app.route(base_url + 'api/log_hours', methods=['POST'])
 def api_log_hours():
@@ -94,11 +88,13 @@ def api_clock_in():
     new_session = WorkSession(session_type='in/out', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
     db.session.commit()
-    leave_no_lunch = clock_in_time + timedelta(hours=hours_per_day-get_hours_today())
-    leave_lunch = leave_no_lunch + timedelta(minutes=lunch_len)
+    leave_time = clock_in_time + timedelta(hours=hours_per_day-get_hours_today())
+    if date.weekday() == 4: #if friday
+        hours_this_week = get_hours_this_week()
+        hours_remaining = hours_per_week-hours_this_week
+        leave_time = leave_time + timedelta(hours=hours_remaining)
     return jsonify({'message': 'Clocked in successfully',
-                    'leave_no_lunch': leave_no_lunch,
-                    'leave_lunch': leave_lunch}), 201
+                    'leave_time': leave_time.strftime('%H:%M:%S')}), 201
 
 @app.route(base_url + 'api/clock_out', methods=['POST'])
 def api_clock_out():
@@ -165,6 +161,14 @@ def api_get_session(id):
 def get_hours_today():
     today = datetime.now().date()
     sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
+    total_hours = sum(session.hours_worked for session in sessions)
+    return round(total_hours, 1)
+
+def get_hours_this_week():
+    now = datetime.now()
+    start_of_week = now - timedelta(days=now.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked > 0).all()
     total_hours = sum(session.hours_worked for session in sessions)
     return round(total_hours, 1)
 
