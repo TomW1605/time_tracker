@@ -115,7 +115,9 @@ def api_clock_out():
     session.clock_out_time = clock_out_time
     session.hours_worked = round((clock_out_time - session.clock_in_time).total_seconds() / 3600, 1)
     db.session.commit()
-    return jsonify({'message': 'Clocked out successfully'}), 200
+    return jsonify({'message': f'Clocked out successfully',
+                    'hours': session.hours_worked,
+                    'hours_today': get_hours_today()}), 200
 
 @app.route(base_url + 'api/edit_session/<int:id>', methods=['POST'])
 def api_edit_session(id):
