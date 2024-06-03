@@ -3,6 +3,12 @@
 <head>
     <title>Summary</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        h3, p {
+            display: inline-block;
+            margin: 0 5px 5px 0;
+        }
+    </style>
     <script>
         function loadSessions() {
             fetch("{{ url_for('api_get_sessions') }}")
@@ -58,6 +64,34 @@
             .catch(error => console.error('Error:', error));
         }
 
+        function loadHours() {
+            fetch("{{ url_for('api_get_hours') }}")
+            .then(response => response.json())
+            .then(data => {
+                const hours_el = document.getElementById('hours');
+                console.log(data);
+
+                const today_heading = document.createElement('h3');
+                today_heading.textContent = "Hours worked today:";
+                hours_el.appendChild(today_heading);
+
+                const today_hours = document.createElement('p');
+                today_hours.textContent = data.hours_today;
+                hours_el.appendChild(today_hours);
+
+                hours_el.appendChild(document.createElement('br'));
+
+                const week_heading = document.createElement('h3');
+                week_heading.textContent = "Hours worked this week:";
+                hours_el.appendChild(week_heading);
+
+                const week_hours = document.createElement('p');
+                week_hours.textContent = data.hours_this_week;
+                hours_el.appendChild(week_hours);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
         function deleteSession(id) {
             if (confirm('Are you sure you want to delete this session?')) {
                 fetch("{{ url_for('api_delete_session', id=0) }}" + id, {
@@ -74,11 +108,14 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             loadSessions();
+            loadHours();
         });
     </script>
 </head>
 <body>
     <h1>Summary</h1>
+    <div id="hours"></div>
+    <p><a href="{{ url_for('index') }}">Home</a></p>
     <table border="1">
         <thead>
             <tr>
@@ -96,6 +133,5 @@
             <!-- Data will be loaded here by JavaScript -->
         </tbody>
     </table>
-    <p><a href="{{ url_for('index') }}">Home</a></p>
 </body>
 </html>

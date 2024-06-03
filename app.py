@@ -174,6 +174,13 @@ def api_delete_session(id):
     db.session.commit()
     return jsonify({'message': 'Session deleted successfully'}), 200
 
+@app.route(base_url + 'api/get_hours', methods=['GET'])
+def api_get_hours():
+    return jsonify(
+        {
+            'hours_today': get_hours_today(),
+            'hours_this_week': get_hours_this_week()
+        })
 
 def get_hours_today():
     today = datetime.now().date()
