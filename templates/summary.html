@@ -60,16 +60,16 @@
                     editLink.href = "{{ url_for('edit', id=0) }}" + session.id;
                     editLink.textContent = 'Edit';
                     editCell.appendChild(editLink);
-                    row.appendChild(editCell);
 
-                    const deleteCell = document.createElement('td');
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Delete';
                     deleteButton.onclick = function() {
                         deleteSession(session.id);
                     };
-                    deleteCell.appendChild(deleteButton);
-                    row.appendChild(deleteCell);
+                    deleteButton.style = "margin-left: 10px;"
+                    editCell.appendChild(deleteButton);
+
+                    row.appendChild(editCell);
 
                     tableBody.appendChild(row);
                 });
@@ -139,7 +139,7 @@
                 <th>Clock In</th>
                 <th>Clock Out</th>
                 <th>Edit</th>
-                <th>Delete</th>
+{#                <th>Delete</th>#}
             </tr>
         </thead>
         <tbody id="sessionsTableBody">
