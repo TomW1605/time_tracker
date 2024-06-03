@@ -105,7 +105,10 @@ def api_clock_out():
     data = request.get_json()
     session = WorkSession.query.filter_by(session_type='in/out', clock_out_time=None).order_by(WorkSession.clock_in_time.desc()).first()
     if not session:
-        return jsonify({'error': 'No active clock-in session found'}), 404
+        return jsonify({
+            'error': 'No active clock-in session found',
+            'message': 'No active clock-in session found'
+        }), 404
 
     now = datetime.now()
     date = now.date()
