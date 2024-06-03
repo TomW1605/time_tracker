@@ -18,7 +18,9 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                window.location.href = "{{ url_for('summary') }}";
+                {#window.location.href = "{{ url_for('summary') }}";#}
+                document.getElementById('date').value = '{{ current_date }}';
+                document.getElementById('hours_worked').value = '7.6';
             })
             .catch(error => console.error('Error:', error));
         }
