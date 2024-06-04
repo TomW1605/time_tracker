@@ -11,8 +11,8 @@
     </style>
     <script>
         function compareFn(a, b) {
-            const a_date = (a.clock_in_time === undefined) ? a.date : a.clock_in_time;
-            const b_date = (b.clock_in_time === undefined) ? b.date : b.clock_in_time;
+            const a_date = (a.clock_in_time === null) ? a.date : a.clock_in_time;
+            const b_date = (b.clock_in_time === null) ? b.date : b.clock_in_time;
             if (a_date > b_date) {
                 return -1;
             } else if (a_date < b_date) {
