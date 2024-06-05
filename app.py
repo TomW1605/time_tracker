@@ -130,11 +130,18 @@ def api_edit_session(id):
     if session.session_type == 'hours':
         session.hours_worked = round(float(data['hours_worked']), 1)
     else:
-        clock_in_time = datetime.combine(session.date, datetime.strptime(data['clock_in_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
-        clock_out_time = datetime.combine(session.date, datetime.strptime(data['clock_out_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
-        session.clock_in_time = clock_in_time
-        session.clock_out_time = clock_out_time
-        session.hours_worked = round((clock_out_time - clock_in_time).total_seconds() / 3600, 1)
+        clock_in_time = False
+        clock_out_time = False
+        if data['clock_in_time']:
+            clock_in_time = datetime.combine(session.date, datetime.strptime(data['clock_in_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
+            session.clock_in_time = clock_in_time
+
+        if data['clock_out_time']:
+            clock_out_time = datetime.combine(session.date, datetime.strptime(data['clock_out_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
+            session.clock_out_time = clock_out_time
+
+        if clock_in_time and clock_out_time:
+            session.hours_worked = round((clock_out_time - clock_in_time).total_seconds() / 3600, 1)
     db.session.commit()
     return jsonify({'message': 'Session updated successfully'}), 200
 
