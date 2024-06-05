@@ -53,9 +53,9 @@
             .catch(error => console.error('Error:', error));
         }
 
-        function deleteSession(id) {
+        function deleteSession() {
             if (confirm('Are you sure you want to delete this session?')) {
-                fetch("{{ url_for('api_delete_session', id=id) }}", {
+                fetch("{{ url_for('api_delete_session', id=session_id) }}", {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -89,6 +89,6 @@
     </form>
     <p><a href="{{ url_for('index') }}">Home</a></p>
     <p><a href="{{ url_for('summary') }}">Back to Summary</a></p>
-    <button onclick="deleteSession({{ session_id }})">Delete Session</button>
+    <button onclick="deleteSession()">Delete Session</button>
 </body>
 </html>
