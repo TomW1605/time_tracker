@@ -191,16 +191,21 @@ def api_get_hours():
 
 def get_hours_today():
     today = datetime.now().date()
-    sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
-    total_hours = sum(session.hours_worked for session in sessions)
+    complete_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
+    running_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked == None).all()
+    # print(running_sessions)
+    total_hours = (sum(session.hours_worked for session in complete_sessions) +
+                   sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
 
 def get_hours_this_week():
     now = datetime.now()
     start_of_week = now - timedelta(days=now.weekday())
     end_of_week = start_of_week + timedelta(days=6)
-    sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked > 0).all()
-    total_hours = sum(session.hours_worked for session in sessions)
+    complete_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked > 0).all()
+    running_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked == None).all()
+    total_hours = (sum(session.hours_worked for session in complete_sessions) +
+                   sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
 
 if __name__ == '__main__':
