@@ -64,7 +64,7 @@ def api_clock_in():
     time_str = data['clock_in_time']
     time = datetime.strptime(time_str, '%H:%M:%S').time()
     clock_in_time = datetime.combine(date, time).replace(second=0, microsecond=0)
-    new_session = WorkSession(session_type='in/out', date=clock_in_time.date(), clock_in_time=clock_in_time)
+    new_session = WorkSession(session_type='clocked', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
     db.session.commit()
     if date.weekday() == 4: #if friday
@@ -82,7 +82,7 @@ def api_clock_in():
 @app.route(base_url + 'api/clock_out', methods=['POST'])
 def api_clock_out():
     data = request.get_json()
-    session = WorkSession.query.filter_by(session_type='in/out', clock_out_time=None).order_by(WorkSession.clock_in_time.desc()).first()
+    session = WorkSession.query.filter_by(session_type='clocked', clock_out_time=None).order_by(WorkSession.clock_in_time.desc()).first()
     if not session:
         return jsonify({
             'error': 'No active clock-in session found',
