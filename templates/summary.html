@@ -1,4 +1,7 @@
 <script>
+    let expandedWeeks = {};
+    let firstWeek = true;
+
     function compareDates(a, b) {
         return a > b ? -1 : a < b ? 1 : 0;
     }
@@ -19,20 +22,29 @@
         fetch("{{ url_for('api_get_sessions_grouped') }}")
         .then(response => response.json())
         .then(data => {
+            console.log(data)
             const tableBody = document.getElementById('groupedSessionsContainer');
+            tableBody.innerHTML = "";
             const weeks = Object.keys(data).sort(compareWeeks);
-            let firstWeek = true;
             weeks.forEach(week => {
-                const sessions = data[week];
-                const totalHours = sessions.reduce((sum, session) => sum + session.hours_worked, 0);
+                const sessions = data[week]["sessions"];
+                const totalHours = data[week]["hours_worked"];
                 if (totalHours > 0) {
                     const weekRow = document.createElement('tr');
                     weekRow.className = 'week-row';
-                    weekRow.innerHTML = `
+
+                    let weekRowHTML = `
                         <td colspan="8" onclick="toggleSessions('${week}', this)">
-                            <button class="expand-button">+</button> ${week} - ${totalHours.toFixed(1)} Hours
-                        </td>
-                    `;
+                            <button class="expand-button">+</button> ${data[week]["start"]} to ${data[week]["end"]} - ${totalHours.toFixed(1)} Hours`;
+                    if(data[week]["hours_short"]>0) {
+                        weekRowHTML += ` (${data[week]["hours_short"].toFixed(1)} Hours short)`;
+                    } else if(data[week]["hours_short"]<0) {
+                        weekRowHTML += ` (${-data[week]["hours_short"].toFixed(1)} Hours over)`;
+                    }
+                    weekRowHTML += `</td>`;
+
+                    weekRow.innerHTML = weekRowHTML
+
                     tableBody.appendChild(weekRow);
 
                     const sessionHeader = document.createElement('tr');
@@ -97,7 +109,7 @@
                         tableBody.appendChild(sessionRow);
                     });
 
-                    if (firstWeek) {
+                    if (firstWeek || expandedWeeks[week]) {
                         toggleSessions(week, weekRow);
                         firstWeek = false;
                     }
@@ -112,6 +124,8 @@
         sessionRows.forEach(row => {
             row.style.display = (row.style.display === 'none' || row.style.display === '') ? 'table-row' : 'none';
         });
+        const isExpanded = sessionRows[0].style.display === 'table-row';
+        expandedWeeks[week] = isExpanded;
         toggleButton(row.querySelector('.expand-button'));
     }
 
@@ -124,7 +138,8 @@
         .then(response => response.json())
         .then(data => {
             const hours_el = document.getElementById('hours');
-            console.log(data);
+            hours_el.innerHTML = "";
+            {#console.log(data);#}
 
             const today_heading = document.createElement('h3');
             today_heading.textContent = "Hours worked today:";
@@ -147,24 +162,16 @@
             hours_el.appendChild(document.createElement('br'));
 
             const deficit_heading = document.createElement('h3');
-            deficit_heading.textContent = "Hours deficit:";
+            deficit_heading.textContent = "Hours total:";
             hours_el.appendChild(deficit_heading);
 
             const all_time_deficit = document.createElement('p');
-            all_time_deficit.textContent = `All time: ${data.all_time_deficit.toFixed(1)} hours`;
+            if(data.all_time_deficit>0) {
+                all_time_deficit.textContent = `${data.all_time_deficit.toFixed(1)} Hours short`;
+            } else if(data.all_time_deficit<0) {
+                all_time_deficit.textContent = `${-data.all_time_deficit.toFixed(1)} Hours over`;
+            }
             hours_el.appendChild(all_time_deficit);
-
-            hours_el.appendChild(document.createElement('br'));
-
-            const today_deficit = document.createElement('p');
-            today_deficit.textContent = `Today: ${data.today_deficit.toFixed(1)} hours`;
-            hours_el.appendChild(today_deficit);
-
-            hours_el.appendChild(document.createElement('br'));
-
-            const week_deficit = document.createElement('p');
-            week_deficit.textContent = `This week: ${data.week_deficit.toFixed(1)} hours`;
-            hours_el.appendChild(week_deficit);
         })
         .catch(error => console.error('Error:', error));
     }
@@ -177,10 +184,16 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                location.reload();
+                {#location.reload();#}
+                reloadSummary();
             })
             .catch(error => console.error('Error:', error));
         }
+    }
+
+    function reloadSummary() {
+        loadGroupedSessions();
+        loadHours();
     }
 
     document.addEventListener('DOMContentLoaded', function() {

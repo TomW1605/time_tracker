@@ -19,11 +19,14 @@ if not base_url.endswith('/'):
 app = Flask(__name__, static_url_path=base_url + 'static')
 
 # Ensure the config directory exists
-os.makedirs('/config', exist_ok=True)
+# os.makedirs('/config', exist_ok=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////config/work_hours.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///work_hours.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+daily_target = 7.6
+weekly_target = 38
 
 class WorkSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -67,7 +70,7 @@ def edit(id):
 
 @app.route(base_url + 'api/hours_this_week')
 def api_hours_this_week():
-    return jsonify({'hours_this_week': round(get_hours_this_week(), 1)})
+    return jsonify({'hours_this_week': round(get_hours_week(), 1)})
 
 @app.route(base_url + 'api/log_hours', methods=['POST'])
 def api_log_hours():
@@ -91,7 +94,7 @@ def api_clock_in():
     db.session.add(new_session)
     db.session.commit()
     if date.weekday() == 4: #if friday
-        hours_this_week = get_hours_this_week()
+        hours_this_week = get_hours_week()
         # print(hours_this_week)
         hours_remaining = hours_per_week-hours_this_week
         # print(hours_remaining)
@@ -170,10 +173,15 @@ def api_get_sessions_grouped():
     for session in sessions:
         start_of_week = session.date - timedelta(days=session.date.weekday())
         end_of_week = start_of_week + timedelta(days=4)
-        week = f"{start_of_week.strftime('%Y-%m-%d')} - {end_of_week.strftime('%Y-%m-%d')}"
+        week = start_of_week.strftime('%Y-%m-%d')
         if week not in weeks:
-            weeks[week] = []
-        weeks[week].append({
+            weeks[week] = {
+                "start_date": start_of_week,
+                "start": start_of_week.strftime('%d-%m-%Y'),
+                "end": end_of_week.strftime('%d-%m-%Y'),
+                "sessions": []
+            }
+        weeks[week]["sessions"].append({
             'id': session.id,
             'session_type': session.session_type,
             'date': session.date.strftime('%Y-%m-%d'),
@@ -181,6 +189,10 @@ def api_get_sessions_grouped():
             'clock_in_time': session.clock_in_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_in_time else None,
             'clock_out_time': session.clock_out_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_out_time else None
         })
+
+    for week in weeks:
+        weeks[week]["hours_worked"] = get_hours_week(weeks[week]["start_date"])
+        weeks[week]["hours_short"] = get_week_hours_deficit(weeks[week]["start_date"])
     return jsonify(weeks)
 
 @app.route(base_url + 'api/get_session/<int:id>', methods=['GET'])
@@ -207,10 +219,10 @@ def api_delete_session(id):
 def api_get_hours():
     return jsonify({
         'hours_today': get_hours_today(),
-        'hours_this_week': get_hours_this_week(),
+        'hours_this_week': get_hours_week(),
         'all_time_deficit': get_all_time_deficit(),
-        'today_deficit': get_hours_deficit()['today_deficit'],
-        'week_deficit': get_hours_deficit()['week_deficit']
+        'today_deficit': get_today_hours_deficit(),
+        'week_deficit': get_week_hours_deficit()
     })
 
 def get_hours_today():
@@ -222,41 +234,43 @@ def get_hours_today():
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
 
-def get_hours_this_week():
-    now = datetime.now()
+def get_hours_week(now = datetime.now()):
+    if isinstance(now, datetime):
+        now = now.date()
     start_of_week = now - timedelta(days=now.weekday())
     end_of_week = start_of_week + timedelta(days=6)
-    complete_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked > 0).all()
-    running_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week.date(), WorkSession.date <= end_of_week.date(), WorkSession.hours_worked == None).all()
+    complete_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked > 0).all()
+    running_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked == None).all()
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
 
-def get_hours_deficit():
-    daily_target = 7.6
-    weekly_target = 38
+def get_hours_all_time():
+    complete_sessions = WorkSession.query.filter(WorkSession.hours_worked > 0).all()
+    running_sessions = WorkSession.query.filter(WorkSession.hours_worked is None).all()
+    total_hours = (sum(session.hours_worked for session in complete_sessions) +
+                   sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
+    return round(total_hours, 1)
 
+def get_today_hours_deficit():
+    if datetime.now().weekday() in [5, 6]:
+        return 0
     today_deficit = daily_target - get_hours_today()
-    week_deficit = weekly_target - get_hours_this_week()
+    return today_deficit
 
-    return {
-        "today_deficit": today_deficit,
-        "week_deficit": week_deficit
-    }
-
-def get_all_time_hours():
-    sessions = WorkSession.query.all()
-    total_hours = sum(session.hours_worked for session in sessions)
-    return total_hours
+def get_week_hours_deficit(now = datetime.now()):
+    week_deficit = weekly_target - get_hours_week(now)
+    return week_deficit
 
 def get_all_time_deficit():
-    weekly_target = 38
+    sessions = WorkSession.query.all()
+    weeks = []
+    for session in sessions:
+        week = session.date - timedelta(days=session.date.weekday())
+        weeks.append(week)
 
-    total_days = (datetime.now().date() - WorkSession.query.order_by(WorkSession.date).first().date).days
-    total_weeks = total_days / 7.0
-
-    all_time_target = total_weeks * weekly_target
-    all_time_deficit = all_time_target - get_all_time_hours()
+    all_time_target = weekly_target * len(set(weeks))
+    all_time_deficit = all_time_target - get_hours_all_time()
 
     return all_time_deficit
 
