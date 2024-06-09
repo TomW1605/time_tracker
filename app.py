@@ -25,9 +25,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////config/work_hours.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-daily_target = 7.6
-weekly_target = 38
-
 class WorkSession(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_type = db.Column(db.String(50), nullable=False)
@@ -45,32 +42,9 @@ def index():
     current_time = datetime.now().strftime('%H:%M:%S')
     return render_template('index.html', current_date=current_date, current_time=current_time)
 
-# @app.route(base_url + 'log_hours', methods=['GET'])
-# def log_hours():
-#     current_date = datetime.now().strftime('%Y-%m-%d')
-#     return render_template('log_hours.html', current_date=current_date)
-#
-# @app.route(base_url + 'clock_in', methods=['GET'])
-# def clock_in():
-#     current_time = datetime.now().strftime('%H:%M:%S')
-#     return render_template('clock_in.html', current_time=current_time)
-#
-# @app.route(base_url + 'clock_out', methods=['GET'])
-# def clock_out():
-#     current_time = datetime.now().strftime('%H:%M:%S')
-#     return render_template('clock_out.html', current_time=current_time)
-#
-# @app.route(base_url + 'summary')
-# def summary():
-#     return render_template('summary.html')
-
 @app.route(base_url + 'edit/<int:id>', methods=['GET'])
 def edit(id):
     return render_template('edit.html', session_id=id)
-
-@app.route(base_url + 'api/hours_this_week')
-def api_hours_this_week():
-    return jsonify({'hours_this_week': round(get_hours_week(), 1)})
 
 @app.route(base_url + 'api/log_hours', methods=['POST'])
 def api_log_hours():
@@ -220,9 +194,9 @@ def api_get_hours():
     return jsonify({
         'hours_today': get_hours_today(),
         'hours_this_week': get_hours_week(),
-        'all_time_deficit': get_all_time_deficit(),
         'today_deficit': get_today_hours_deficit(),
-        'week_deficit': get_week_hours_deficit()
+        'week_deficit': get_week_hours_deficit(),
+        'all_time_deficit': get_all_time_deficit()
     })
 
 def get_hours_today():
@@ -255,11 +229,11 @@ def get_hours_all_time():
 def get_today_hours_deficit():
     if datetime.now().weekday() in [5, 6]:
         return 0
-    today_deficit = daily_target - get_hours_today()
+    today_deficit = hours_per_day - get_hours_today()
     return today_deficit
 
 def get_week_hours_deficit(now = datetime.now()):
-    week_deficit = weekly_target - get_hours_week(now)
+    week_deficit = hours_per_week - get_hours_week(now)
     return week_deficit
 
 def get_all_time_deficit():
@@ -269,7 +243,7 @@ def get_all_time_deficit():
         week = session.date - timedelta(days=session.date.weekday())
         weeks.append(week)
 
-    all_time_target = weekly_target * len(set(weeks))
+    all_time_target = hours_per_week * len(set(weeks))
     all_time_deficit = all_time_target - get_hours_all_time()
 
     return all_time_deficit
