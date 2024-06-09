@@ -43,6 +43,10 @@ Links to the shortcuts i use can be found below:
 As the program doesn't actually support breaks (it is on the to do list), the break shortcuts are simply clocking out and back in.
 With the End Break shortcut updating the leave work reminder to account for the added break time.
 
+#### Scriptable
+All of these shortcuts rely on a [Scriptable](https://scriptable.app/) scrip, [post to URL.js](post%20to%20URL.js).\
+As such, you must install the Scriptable app and load this script into it before the shortcuts above will work.
+
 ## API
 ### 1. Log Worked Hours Manually
 #### POST `/api/log_hours`
