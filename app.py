@@ -203,11 +203,13 @@ def api_delete_session(id):
 
 @app.route(base_url + 'api/get_hours', methods=['GET'])
 def api_get_hours():
-    return jsonify(
-        {
-            'hours_today': get_hours_today(),
-            'hours_this_week': get_hours_this_week()
-        })
+    return jsonify({
+        'hours_today': get_hours_today(),
+        'hours_this_week': get_hours_this_week(),
+        'all_time_deficit': get_all_time_deficit(),
+        'today_deficit': get_hours_deficit()['today_deficit'],
+        'week_deficit': get_hours_deficit()['week_deficit']
+    })
 
 def get_hours_today():
     today = datetime.now().date()
@@ -227,6 +229,34 @@ def get_hours_this_week():
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
+
+def get_hours_deficit():
+    daily_target = 7.6
+    weekly_target = 38
+
+    today_deficit = daily_target - get_hours_today()
+    week_deficit = weekly_target - get_hours_this_week()
+
+    return {
+        "today_deficit": today_deficit,
+        "week_deficit": week_deficit
+    }
+
+def get_all_time_hours():
+    sessions = WorkSession.query.all()
+    total_hours = sum(session.hours_worked for session in sessions)
+    return total_hours
+
+def get_all_time_deficit():
+    weekly_target = 38
+
+    total_days = (datetime.now().date() - WorkSession.query.order_by(WorkSession.date).first().date).days
+    total_weeks = total_days / 7.0
+
+    all_time_target = total_weeks * weekly_target
+    all_time_deficit = all_time_target - get_all_time_hours()
+
+    return all_time_deficit
 
 if __name__ == '__main__':
     with app.app_context():

@@ -183,6 +183,28 @@
                 const week_hours = document.createElement('p');
                 week_hours.textContent = data.hours_this_week;
                 hours_el.appendChild(week_hours);
+
+                hours_el.appendChild(document.createElement('br'));
+
+                const deficit_heading = document.createElement('h3');
+                deficit_heading.textContent = "Hours deficit:";
+                hours_el.appendChild(deficit_heading);
+
+                const all_time_deficit = document.createElement('p');
+                all_time_deficit.textContent = `All time: ${data.all_time_deficit.toFixed(1)} hours`;
+                hours_el.appendChild(all_time_deficit);
+
+                hours_el.appendChild(document.createElement('br'));
+
+                const today_deficit = document.createElement('p');
+                today_deficit.textContent = `Today: ${data.today_deficit.toFixed(1)} hours`;
+                hours_el.appendChild(today_deficit);
+
+                hours_el.appendChild(document.createElement('br'));
+
+                const week_deficit = document.createElement('p');
+                week_deficit.textContent = `This week: ${data.week_deficit.toFixed(1)} hours`;
+                hours_el.appendChild(week_deficit);
             })
             .catch(error => console.error('Error:', error));
         }
