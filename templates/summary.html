@@ -18,6 +18,51 @@
         return compareDates(a_date, b_date);
     }
 
+    function loadHours() {
+        fetch("{{ url_for('api_get_hours') }}")
+        .then(response => response.json())
+        .then(data => {
+            const hours_el = document.getElementById('hours');
+            hours_el.innerHTML = "";
+            {#console.log(data);#}
+
+            const today_heading = document.createElement('h3');
+            today_heading.textContent = "Hours worked today:";
+            hours_el.appendChild(today_heading);
+
+            const today_hours = document.createElement('p');
+            today_hours.textContent = data.hours_today;
+            hours_el.appendChild(today_hours);
+
+            hours_el.appendChild(document.createElement('br'));
+
+            const week_heading = document.createElement('h3');
+            week_heading.textContent = "Hours worked this week:";
+            hours_el.appendChild(week_heading);
+
+            const week_hours = document.createElement('p');
+            week_hours.textContent = data.hours_this_week;
+            hours_el.appendChild(week_hours);
+
+            hours_el.appendChild(document.createElement('br'));
+
+            const deficit_heading = document.createElement('h3');
+            deficit_heading.textContent = "Hours total:";
+            hours_el.appendChild(deficit_heading);
+
+            const all_time_deficit = document.createElement('p');
+            if(data.all_time_deficit>0) {
+                all_time_deficit.textContent = `${data.all_time_deficit.toFixed(1)} Hours short`;
+            } else if(data.all_time_deficit<0) {
+                all_time_deficit.textContent = `${-data.all_time_deficit.toFixed(1)} Hours over`;
+            } else {
+                all_time_deficit.textContent = `0 Hours over/short`;
+            }
+            hours_el.appendChild(all_time_deficit);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
     function loadGroupedSessions() {
         fetch("{{ url_for('api_get_sessions_grouped') }}")
         .then(response => response.json())
@@ -131,49 +176,6 @@
 
     function toggleButton(button) {
         button.textContent = button.textContent === '+' ? '-' : '+';
-    }
-
-    function loadHours() {
-        fetch("{{ url_for('api_get_hours') }}")
-        .then(response => response.json())
-        .then(data => {
-            const hours_el = document.getElementById('hours');
-            hours_el.innerHTML = "";
-            {#console.log(data);#}
-
-            const today_heading = document.createElement('h3');
-            today_heading.textContent = "Hours worked today:";
-            hours_el.appendChild(today_heading);
-
-            const today_hours = document.createElement('p');
-            today_hours.textContent = data.hours_today;
-            hours_el.appendChild(today_hours);
-
-            hours_el.appendChild(document.createElement('br'));
-
-            const week_heading = document.createElement('h3');
-            week_heading.textContent = "Hours worked this week:";
-            hours_el.appendChild(week_heading);
-
-            const week_hours = document.createElement('p');
-            week_hours.textContent = data.hours_this_week;
-            hours_el.appendChild(week_hours);
-
-            hours_el.appendChild(document.createElement('br'));
-
-            const deficit_heading = document.createElement('h3');
-            deficit_heading.textContent = "Hours total:";
-            hours_el.appendChild(deficit_heading);
-
-            const all_time_deficit = document.createElement('p');
-            if(data.all_time_deficit>0) {
-                all_time_deficit.textContent = `${data.all_time_deficit.toFixed(1)} Hours short`;
-            } else if(data.all_time_deficit<0) {
-                all_time_deficit.textContent = `${-data.all_time_deficit.toFixed(1)} Hours over`;
-            }
-            hours_el.appendChild(all_time_deficit);
-        })
-        .catch(error => console.error('Error:', error));
     }
 
     function deleteSession(id) {
