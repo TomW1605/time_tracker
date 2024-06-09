@@ -3,12 +3,42 @@
 <head>
     <title>Work Hour Tracker</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dark.css') }}">
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>Welcome to Work Hour Tracker</h1>
-    <p><a href="{{ url_for('log_hours') }}">Log Work Hours Manually</a></p>
-    <p><a href="{{ url_for('clock_in') }}">Clock In</a></p>
-    <p><a href="{{ url_for('clock_out') }}">Clock Out</a></p>
-    <p><a href="{{ url_for('summary') }}">View Summary</a></p>
+    <p><a href="javascript:void(0);" onclick="toggleSection('logHoursSection')">Log Work Hours Manually</a></p>
+    <div id="logHoursSection" class="hidden">
+        {% include 'log_hours.html' %}
+    </div>
+
+    <p><a href="javascript:void(0);" onclick="toggleSection('clockInSection')">Clock In</a></p>
+    <div id="clockInSection" class="hidden">
+        {% include 'clock_in.html' %}
+    </div>
+
+    <p><a href="javascript:void(0);" onclick="toggleSection('clockOutSection')">Clock Out</a></p>
+    <div id="clockOutSection" class="hidden">
+        {% include 'clock_out.html' %}
+    </div>
+
+    <p><a href="javascript:void(0);" onclick="toggleSection('summarySection')">View Summary</a></p>
+    <div id="summarySection" class>
+        {% include 'summary.html' %}
+    </div>
 </body>
 </html>

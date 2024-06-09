@@ -1,38 +1,28 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Clock In</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dark.css') }}">
-    <script>
-        function clockIn() {
-            const clockInTime = document.getElementById('clock_in_time').value;
+<script>
+    function clockIn() {
+        const clockInTime = document.getElementById('clock_in_time').value;
 
-            fetch("{{ url_for('api_clock_in') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ clock_in_time: clockInTime })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                window.location.href = "{{ url_for('summary') }}";
-            })
-            .catch(error => console.error('Error:', error));
-        }
+        fetch("{{ url_for('api_clock_in') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ clock_in_time: clockInTime })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            reloadSummary();
+        })
+        .catch(error => console.error('Error:', error));
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('clock_in_time').value = '{{ current_time }}';
-        });
-    </script>
-</head>
-<body>
-    <h1>Clock In</h1>
-    <form onsubmit="event.preventDefault(); clockIn();">
-        Time: <input type="time" step="1" id="clock_in_time" name="clock_in_time" required><br>
-        <input type="submit" value="Clock In">
-    </form>
-    <p><a href="{{ url_for('index') }}">Home</a></p>
-</body>
-</html>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('clock_in_time').value = '{{ current_time }}';
+    });
+</script>
+<h2>Clock In</h2>
+<form onsubmit="event.preventDefault(); clockIn();">
+    Time: <input type="time" step="1" id="clock_in_time" name="clock_in_time" required><br>
+    <input type="submit" value="Clock In">
+</form>

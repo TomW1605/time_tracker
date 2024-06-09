@@ -1,43 +1,34 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Log Hours</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dark.css') }}">
-    <script>
-        function logHours() {
-            const date = document.getElementById('date').value;
-            const hoursWorked = document.getElementById('hours_worked').value;
+<script>
+    function logHours() {
+        const date = document.getElementById('date').value;
+        const hoursWorked = document.getElementById('hours_worked').value;
 
-            fetch("{{ url_for('api_log_hours') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ date: date, hours_worked: hoursWorked })
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                {#window.location.href = "{{ url_for('summary') }}";#}
-                document.getElementById('date').value = '{{ current_date }}';
-                document.getElementById('hours_worked').value = '7.6';
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
+        fetch("{{ url_for('api_log_hours') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ date: date, hours_worked: hoursWorked })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message);
+            {#window.location.href = "{{ url_for('summary') }}";#}
             document.getElementById('date').value = '{{ current_date }}';
             document.getElementById('hours_worked').value = '7.6';
-        });
-    </script>
-</head>
-<body>
-    <h1>Log Hours</h1>
-    <form onsubmit="event.preventDefault(); logHours();">
-        Date: <input type="date" id="date" name="date" required><br>
-        Hours Worked: <input type="number" step="0.1" id="hours_worked" name="hours_worked" required><br>
-        <input type="submit" value="Log Hours">
-    </form>
-    <p><a href="{{ url_for('index') }}">Home</a></p>
-</body>
-</html>
+            reloadSummary();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('date').value = '{{ current_date }}';
+        document.getElementById('hours_worked').value = '7.6';
+    });
+</script>
+<h2>Log Hours</h2>
+<form onsubmit="event.preventDefault(); logHours();">
+    Date: <input type="date" id="date" name="date" required><br>
+    Hours Worked: <input type="number" step="0.1" id="hours_worked" name="hours_worked" required><br>
+    <input type="submit" value="Log Hours">
+</form>

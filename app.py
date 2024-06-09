@@ -38,26 +38,28 @@ class WorkSession(db.Model):
 
 @app.route(base_url)
 def index():
-    return render_template('index.html')
-
-@app.route(base_url + 'log_hours', methods=['GET'])
-def log_hours():
     current_date = datetime.now().strftime('%Y-%m-%d')
-    return render_template('log_hours.html', current_date=current_date)
-
-@app.route(base_url + 'clock_in', methods=['GET'])
-def clock_in():
     current_time = datetime.now().strftime('%H:%M:%S')
-    return render_template('clock_in.html', current_time=current_time)
+    return render_template('index.html', current_date=current_date, current_time=current_time)
 
-@app.route(base_url + 'clock_out', methods=['GET'])
-def clock_out():
-    current_time = datetime.now().strftime('%H:%M:%S')
-    return render_template('clock_out.html', current_time=current_time)
-
-@app.route(base_url + 'summary')
-def summary():
-    return render_template('summary.html')
+# @app.route(base_url + 'log_hours', methods=['GET'])
+# def log_hours():
+#     current_date = datetime.now().strftime('%Y-%m-%d')
+#     return render_template('log_hours.html', current_date=current_date)
+#
+# @app.route(base_url + 'clock_in', methods=['GET'])
+# def clock_in():
+#     current_time = datetime.now().strftime('%H:%M:%S')
+#     return render_template('clock_in.html', current_time=current_time)
+#
+# @app.route(base_url + 'clock_out', methods=['GET'])
+# def clock_out():
+#     current_time = datetime.now().strftime('%H:%M:%S')
+#     return render_template('clock_out.html', current_time=current_time)
+#
+# @app.route(base_url + 'summary')
+# def summary():
+#     return render_template('summary.html')
 
 @app.route(base_url + 'edit/<int:id>', methods=['GET'])
 def edit(id):
