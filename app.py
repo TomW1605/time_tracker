@@ -161,6 +161,26 @@ def api_get_sessions():
     ]
     return jsonify(sessions_list)
 
+@app.route(base_url + 'api/get_sessions_grouped', methods=['GET'])
+def api_get_sessions_grouped():
+    sessions = WorkSession.query.all()
+    weeks = {}
+    for session in sessions:
+        start_of_week = session.date - timedelta(days=session.date.weekday())
+        end_of_week = start_of_week + timedelta(days=4)
+        week = f"{start_of_week.strftime('%Y-%m-%d')} - {end_of_week.strftime('%Y-%m-%d')}"
+        if week not in weeks:
+            weeks[week] = []
+        weeks[week].append({
+            'id': session.id,
+            'session_type': session.session_type,
+            'date': session.date.strftime('%Y-%m-%d'),
+            'hours_worked': session.hours_worked,
+            'clock_in_time': session.clock_in_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_in_time else None,
+            'clock_out_time': session.clock_out_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_out_time else None
+        })
+    return jsonify(weeks)
+
 @app.route(base_url + 'api/get_session/<int:id>', methods=['GET'])
 def api_get_session(id):
     session = WorkSession.query.get_or_404(id)
