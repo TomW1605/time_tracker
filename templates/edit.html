@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Edit Session</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='dark.css') }}">
     <script>
         function loadSession() {
             fetch("{{ url_for('api_get_session', id=session_id) }}")
