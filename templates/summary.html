@@ -24,7 +24,6 @@
         .then(data => {
             const hours_el = document.getElementById('hours');
             hours_el.innerHTML = "";
-            {#console.log(data);#}
 
             const today_heading = document.createElement('h3');
             today_heading.textContent = "Hours worked today:";
@@ -186,7 +185,6 @@
             .then(response => response.json())
             .then(data => {
                 alert(data.message);
-                {#location.reload();#}
                 reloadSummary();
             })
             .catch(error => console.error('Error:', error));
@@ -205,6 +203,7 @@
 </script>
 <h2>Summary</h2>
 <div id="hours"></div>
+<button onclick="reloadSummary()" style="margin-bottom: 8px;">Refresh</button>
 <table class="week-table">
     <tbody id="groupedSessionsContainer">
         <!-- Grouped sessions will be loaded here by JavaScript -->
