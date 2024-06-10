@@ -42,24 +42,6 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     border-radius: 4px;
 }
 
-/*input[type="submit"], button {*/
-/*    background-color: #1e90ff;*/
-/*    border: none;*/
-/*    color: white;*/
-/*    padding: 10px 20px;*/
-/*    text-align: center;*/
-/*    text-decoration: none;*/
-/*    display: inline-block;*/
-/*    font-size: 14px;*/
-/*    margin: 4px 2px;*/
-/*    cursor: pointer;*/
-/*    border-radius: 4px;*/
-/*}*/
-
-/*input[type="submit"]:hover, button:hover {*/
-/*    background-color: #006bb3;*/
-/*}*/
-
 #hours > h3,
 #hours > h4,
 #hours > p
@@ -94,5 +76,4 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
 }
 .delete-button {
     margin-left: 10px;
-    /*color: red;*/
 }
