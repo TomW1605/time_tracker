@@ -221,7 +221,7 @@ def get_hours_week(now = datetime.now()):
 
 def get_hours_all_time():
     complete_sessions = WorkSession.query.filter(WorkSession.hours_worked > 0).all()
-    running_sessions = WorkSession.query.filter(WorkSession.hours_worked is None).all()
+    running_sessions = WorkSession.query.filter(WorkSession.hours_worked == None).all()
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
