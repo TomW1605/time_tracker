@@ -8,7 +8,8 @@ from datetime import datetime, timedelta
 port = int(os.getenv('PORT', 5000))
 base_url = os.getenv('BASE_URL', '/time_tracker')
 hours_per_day = os.getenv('HOURS_PER_DAY', 7.6)
-hours_per_week = os.getenv('HOURS_PER_WEEK', 38)
+days_per_week = os.getenv('DAYS_PER_WEEK', 5)
+# hours_per_week = (hours_per_day*days_per_week)
 
 # Ensure base_url has leading and trailing slashes
 if not base_url.startswith('/'):
@@ -70,7 +71,7 @@ def api_clock_in():
     if date.weekday() == 4: #if friday
         hours_this_week = get_hours_week()
         # print(hours_this_week)
-        hours_remaining = hours_per_week-hours_this_week
+        hours_remaining = (hours_per_day*days_per_week)-hours_this_week
         # print(hours_remaining)
         leave_time = clock_in_time + timedelta(hours=hours_remaining - get_hours_today())
         # print(leave_time.strftime('%H:%M:%S'))
@@ -232,8 +233,12 @@ def get_today_hours_deficit():
     today_deficit = hours_per_day - get_hours_today()
     return today_deficit
 
-def get_week_hours_deficit(now = datetime.now()):
-    week_deficit = hours_per_week - get_hours_week(now)
+def get_week_hours_deficit(now:datetime = datetime.now()):
+    if now.isocalendar()[1] == datetime.now().isocalendar()[1]:
+        week_target = hours_per_day * (datetime.now().weekday()+1)
+    else:
+        week_target = hours_per_day * days_per_week
+    week_deficit = week_target - get_hours_week(now)
     return week_deficit
 
 def get_all_time_deficit():
@@ -243,7 +248,13 @@ def get_all_time_deficit():
         week = session.date - timedelta(days=session.date.weekday())
         weeks.append(week)
 
-    all_time_target = hours_per_week * len(set(weeks))
+    all_time_target = 0
+    num_weeks = len(set(weeks))
+    if datetime.now().weekday() < 5:
+        num_weeks -= 1
+        all_time_target += hours_per_day * (datetime.now().weekday()+1)
+
+    all_time_target += (hours_per_day*days_per_week) * num_weeks
     all_time_deficit = all_time_target - get_hours_all_time()
 
     return all_time_deficit
