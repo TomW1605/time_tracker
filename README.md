@@ -35,10 +35,10 @@ Shifts can also be edited and deleted. From the summary table the edit link will
 One of the main goals for me with this program was to be able to clock in and out from an iOS shortcut on my phone.
 This allowed me to also automatically set notifications for when to leave dynamically from hours worked.
 Links to the shortcuts i use can be found below:
-- [Clock In](https://www.icloud.com/shortcuts/203f1215cd7943a8a952424a603080ff) 
-- [Clock Out](https://www.icloud.com/shortcuts/4670679046274c5a943a40e2aed86269)
-- [Start Break](https://www.icloud.com/shortcuts/d9dbde2e6ae54ed9a651f3f932a245ee)
-- [End Break](https://www.icloud.com/shortcuts/17868944280244a187640fc2ed26bc3d)
+- [Clock In](https://www.icloud.com/shortcuts/632c62cab85b40fd9f83cb21d432bee2)
+- [Clock Out](https://www.icloud.com/shortcuts/9d217dd46f814f9a8549edd2786c32b5)
+- [Start Break](https://www.icloud.com/shortcuts/da6480183b8c4b8f9f7a16056535f881)
+- [End Break](https://www.icloud.com/shortcuts/52bc45c06f884708acb0104e8eaa29f9)
 
 As the program doesn't actually support breaks (it is on the to do list), the break shortcuts are simply clocking out and back in.
 With the End Break shortcut updating the leave work reminder to account for the added break time.
