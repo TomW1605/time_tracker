@@ -59,6 +59,9 @@ def api_log_hours():
 
 @app.route(base_url + 'api/clock_in', methods=['POST'])
 def api_clock_in():
+    hours_this_week = get_hours_week()
+    hours_today = get_hours_today()
+
     data = request.get_json()
     now = datetime.now()
     date = now.date()
@@ -69,14 +72,13 @@ def api_clock_in():
     db.session.add(new_session)
     db.session.commit()
     if date.weekday() == 4: #if friday
-        hours_this_week = get_hours_week()
         # print(hours_this_week)
         hours_remaining = (hours_per_day*days_per_week)-hours_this_week
         # print(hours_remaining)
-        leave_time = clock_in_time + timedelta(hours=hours_remaining - get_hours_today())
+        leave_time = clock_in_time + timedelta(hours=hours_remaining)
         # print(leave_time.strftime('%H:%M:%S'))
     else:
-        leave_time = clock_in_time + timedelta(hours=hours_per_day - get_hours_today())
+        leave_time = clock_in_time + timedelta(hours=hours_per_day - hours_today)
     return jsonify({'message': 'Clocked in successfully',
                     'leave_time': leave_time.strftime('%H:%M:%S')}), 201
 
