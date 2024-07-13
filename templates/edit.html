@@ -6,24 +6,61 @@
     <script>
         function loadSession() {
             fetch("{{ url_for('api_get_session', id=session_id) }}")
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('date').value = data.date;
-                if (data.session_type === 'hours') {
-                    document.getElementById('hours_worked_container').style.display = 'block';
-                    document.getElementById('hours_worked').value = data.hours_worked;
-                    document.getElementById('clock_in_time_container').style.display = 'none';
-                    document.getElementById('clock_out_time_container').style.display = 'none';
-                } else {
-                    document.getElementById('hours_worked_container').style.display = 'none';
-                    document.getElementById('clock_in_time_container').style.display = 'block';
-                    document.getElementById('clock_out_time_container').style.display = 'block';
-                    document.getElementById('clock_in_time').value = data.clock_in_time;
-                    document.getElementById('clock_out_time').value = data.clock_out_time;
-                }
-                document.getElementById('comment').value = data.comment;
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    document.getElementById('date').value = data.date;
+                    if (data.session_type === 'hours') {
+                        document.getElementById('hours_worked_container').style.display = 'block';
+                        document.getElementById('hours_worked').value = data.hours_worked;
+                        document.getElementById('clock_in_time_container').style.display = 'none';
+                        document.getElementById('clock_out_time_container').style.display = 'none';
+                    } else {
+                        document.getElementById('hours_worked_container').style.display = 'none';
+                        document.getElementById('clock_in_time_container').style.display = 'block';
+                        document.getElementById('clock_out_time_container').style.display = 'block';
+                        document.getElementById('clock_in_time').value = data.clock_in_time;
+                        document.getElementById('clock_out_time').value = data.clock_out_time;
+                    }
+                    document.getElementById('comment').value = data.comment;
+
+                    const tableBody = document.getElementById('editsContainer');
+                    tableBody.innerHTML = "";
+
+                    const header = document.createElement('tr');
+                    header.className = 'edit-row edit-header';
+                    header.innerHTML = `
+                <th>ID</th>
+                <th>Date</th>
+                <th>Changes</th>
+                <th>Comment</th>
+            `;
+                    tableBody.appendChild(header);
+
+                    data.edit_history.reverse().forEach(edit => {
+                        const editRow = document.createElement('tr');
+                        editRow.className = 'edit-row';
+
+                        const idCell = document.createElement('td');
+                        idCell.textContent = edit.id;
+                        editRow.appendChild(idCell);
+
+                        const date_timeCell = document.createElement('td');
+                        date_timeCell.textContent = edit.date_time;
+                        editRow.appendChild(date_timeCell);
+
+                        const changesCell = document.createElement('td');
+                        changesCell.textContent = edit.changes;
+                        editRow.appendChild(changesCell);
+
+                        const commentCell = document.createElement('td');
+                        commentCell.textContent = edit.comment;
+                        editRow.appendChild(commentCell);
+
+                        tableBody.appendChild(editRow);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         function editSession() {
@@ -33,12 +70,20 @@
             const clockOutTime = document.getElementById('clock_out_time').value;
             const comment = document.getElementById('comment').value;
 
+            const edit_comment = prompt("Edit Comment:");
+
+            if (edit_comment == null || edit_comment == "") {
+                alert("No edit comment provided, edit not saved.");
+                return;
+            }
+
             const data = {
                 date: date,
                 hours_worked: hoursWorked ? parseFloat(hoursWorked) : null,
                 clock_in_time: clockInTime,
                 clock_out_time: clockOutTime,
-                comment: comment
+                comment: comment,
+                edit_comment: edit_comment
             };
 
             fetch("{{ url_for('api_edit_session', id=session_id) }}", {
@@ -48,12 +93,12 @@
                 },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                window.location.href = "{{ url_for('index') }}";
-            })
-            .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    window.location.href = "{{ url_for('index') }}";
+                })
+                .catch(error => console.error('Error:', error));
         }
 
         function deleteSession() {
@@ -61,43 +106,52 @@
                 fetch("{{ url_for('api_delete_session', id=session_id) }}", {
                     method: 'DELETE'
                 })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    window.location.href = "{{ url_for('index') }}";
-                })
-                .catch(error => console.error('Error:', error));
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        window.location.href = "{{ url_for('index') }}";
+                    })
+                    .catch(error => console.error('Error:', error));
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadSession();
         });
     </script>
 </head>
 <body>
-    <h1>Edit Session</h1>
-    <form onsubmit="event.preventDefault(); editSession();">
-        Date: <input type="date" id="date" name="date" required><br>
-        <div id="hours_worked_container">
-            <label for="hours_worked">Hours Worked:</label> <input type="number" step="0.1" id="hours_worked" name="hours_worked"><br>
-        </div>
-        <div id="clock_in_time_container">
-            <label for="clock_in_time">Clock In Time:</label> <input type="time" step="1" id="clock_in_time" name="clock_in_time"><br>
-        </div>
-        <div id="clock_out_time_container">
-            <label for="clock_out_time">Clock Out Time:</label> <input type="time" step="1" id="clock_out_time" name="clock_out_time"><br>
-        </div>
-        <div id="comment_container">
-            <label for="comment">Comment:</label><br>
-            <textarea id="comment" name="comment"></textarea><br>
-        </div>
-        <br>
-        <input type="submit" value="Update">
-    </form>
+<h1>Edit Session</h1>
+<form onsubmit="event.preventDefault(); editSession();">
+    Date: <input type="date" id="date" name="date" required><br>
+    <div id="hours_worked_container">
+        <label for="hours_worked">Hours Worked:</label> <input type="number" step="0.1" id="hours_worked"
+                                                               name="hours_worked"><br>
+    </div>
+    <div id="clock_in_time_container">
+        <label for="clock_in_time">Clock In Time:</label> <input type="time" step="1" id="clock_in_time"
+                                                                 name="clock_in_time"><br>
+    </div>
+    <div id="clock_out_time_container">
+        <label for="clock_out_time">Clock Out Time:</label> <input type="time" step="1" id="clock_out_time"
+                                                                   name="clock_out_time"><br>
+    </div>
+    <div id="comment_container">
+        <label for="comment">Comment:</label><br>
+        <textarea id="comment" name="comment"></textarea><br>
+    </div>
     <br>
-    <button onclick="deleteSession()">Delete Session</button>
-    <br>
-    <p><a href="{{ url_for('index') }}">Home</a></p>
+    <input type="submit" value="Update">
+</form>
+<br>
+<button onclick="deleteSession()">Delete Session</button>
+<br>
+<p><a href="{{ url_for('index') }}">Home</a></p>
+<h2>Edits</h2>
+<table>
+    <tbody id="editsContainer">
+    <!-- Grouped sessions will be loaded here by JavaScript -->
+    </tbody>
+</table>
 </body>
 </html>

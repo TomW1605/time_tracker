@@ -4,6 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 
+from sqlalchemy import ForeignKey
+
 # get env variables
 port = int(os.getenv('PORT', 5000))
 base_url = os.getenv('BASE_URL', '/time_tracker')
@@ -37,6 +39,16 @@ class WorkSession(db.Model):
 
     def __repr__(self):
         return f'<WorkSession({self.id}, {self.session_type}, {self.date}, {self.hours_worked}, {self.clock_in_time}, {self.clock_out_time})>'
+
+class Edit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, ForeignKey(WorkSession.id), nullable=False)
+    date_time = db.Column(db.DateTime, nullable=False)
+    changes = db.Column(db.Text, nullable=True)
+    comment = db.Column(db.Text, nullable=True)
+
+    def __repr__(self):
+        return f'<Edit({self.id}, {self.session_id}, {self.date}, {self.changes}, {self.comment})>'
 
 @app.route(base_url)
 def index():
@@ -109,25 +121,59 @@ def api_clock_out():
 def api_edit_session(id):
     data = request.get_json()
     session = WorkSession.query.get_or_404(id)
-    session.date = datetime.strptime(data['date'], '%Y-%m-%d').date()
+
+    new_data = {"date": datetime.strptime(data['date'], '%Y-%m-%d').date()}
     if session.session_type == 'hours':
-        session.hours_worked = round(float(data['hours_worked']), 1)
+        new_data["hours_worked"] = round(float(data['hours_worked']), 1)
     else:
-        clock_in_time = False
-        clock_out_time = False
+        new_data["clock_in_time"] = False
+        new_data["clock_out_time"] = False
         if data['clock_in_time']:
-            clock_in_time = datetime.combine(session.date, datetime.strptime(data['clock_in_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
-            session.clock_in_time = clock_in_time
+            new_data["clock_in_time"] = datetime.combine(session.date,
+                                             datetime.strptime(data['clock_in_time'], '%H:%M:%S').time()).replace(
+                second=0, microsecond=0)
 
         if data['clock_out_time']:
-            clock_out_time = datetime.combine(session.date, datetime.strptime(data['clock_out_time'], '%H:%M:%S').time()).replace(second=0, microsecond=0)
-            session.clock_out_time = clock_out_time
+            new_data["clock_out_time"] = datetime.combine(session.date,
+                                              datetime.strptime(data['clock_out_time'], '%H:%M:%S').time()).replace(
+                second=0, microsecond=0)
 
-        if clock_in_time and clock_out_time:
-            session.hours_worked = round((clock_out_time - clock_in_time).total_seconds() / 3600, 1)
-    session.comment = data['comment']
-    db.session.commit()
-    return jsonify({'message': 'Session updated successfully'}), 200
+        if new_data["clock_in_time"] and new_data["clock_out_time"]:
+            new_data["hours_worked"] = round((new_data["clock_out_time"] - new_data["clock_in_time"]).total_seconds() / 3600, 1)
+    new_data['comment'] = data['comment']
+
+    changes = {}
+
+    for key, value in new_data.items():
+        if value != getattr(session, key):
+            changes[key] = (getattr(session, key), value)
+
+    change_str = ""
+    for key, value in changes.items():
+        change_str += f"{key}: '{value[0]}'->'{value[1]}', "
+    change_str = change_str[:-2]
+
+    if change_str:
+        session_edit = Edit(session_id=id, date_time=datetime.now(), changes=change_str, comment=data['edit_comment'])
+        db.session.add(session_edit)
+
+        session.date = new_data["date"]
+        if session.session_type == 'hours':
+            session.hours_worked = new_data["hours_worked"]
+        else:
+            if data['clock_in_time']:
+                session.clock_in_time = new_data["clock_in_time"]
+
+            if data['clock_out_time']:
+                session.clock_out_time = new_data["clock_out_time"]
+
+            if new_data["clock_in_time"] and new_data["clock_out_time"]:
+                session.hours_worked = new_data["hours_worked"]
+        session.comment = data['comment']
+
+        db.session.commit()
+        return jsonify({'message': 'Session updated successfully'}), 200
+    return jsonify({'message': 'No changes made'}), 200
 
 @app.route(base_url + 'api/get_sessions', methods=['GET'])
 def api_get_sessions():
@@ -177,6 +223,16 @@ def api_get_sessions_grouped():
 @app.route(base_url + 'api/get_session/<int:id>', methods=['GET'])
 def api_get_session(id):
     session = WorkSession.query.get_or_404(id)
+
+    edits = []
+    for edit in Edit.query.filter_by(session_id=id).all():
+        edits.append({
+            'id': edit.id,
+            'date_time': edit.date_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'changes': edit.changes,
+            'comment': edit.comment,
+        })
+
     session_data = {
         'id': session.id,
         'session_type': session.session_type,
@@ -184,7 +240,8 @@ def api_get_session(id):
         'hours_worked': session.hours_worked,
         'clock_in_time': session.clock_in_time.strftime('%H:%M:%S') if session.clock_in_time else None,
         'clock_out_time': session.clock_out_time.strftime('%H:%M:%S') if session.clock_out_time else None,
-        'comment': session.comment
+        'comment': session.comment,
+        'edit_history': edits
     }
     return jsonify(session_data)
 
