@@ -67,6 +67,10 @@ def api_log_hours():
     hours_worked = float(data['hours_worked'])
     new_session = WorkSession(session_type='hours', date=datetime.strptime(date, '%Y-%m-%d').date(), hours_worked=round(hours_worked, 1))
     db.session.add(new_session)
+    session_created = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Session Created", comment="")
+    db.session.add(session_created)
+    session_edit = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Logged Hours: {hours_worked}", comment="")
+    db.session.add(session_edit)
     db.session.commit()
     return jsonify({'message': 'Logged hours successfully'}), 201
 
@@ -83,6 +87,10 @@ def api_clock_in():
     clock_in_time = datetime.combine(date, time).replace(second=0, microsecond=0)
     new_session = WorkSession(session_type='clocked', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
+    session_created = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Session Created", comment="")
+    db.session.add(session_created)
+    session_edit = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Clocked In: {clock_in_time.strftime('%Y-%m-%d %H:%M:%S')}", comment="")
+    db.session.add(session_edit)
     db.session.commit()
     if date.weekday() == 4: #if friday
         # print(hours_this_week)
@@ -112,6 +120,8 @@ def api_clock_out():
     clock_out_time = datetime.combine(date, time).replace(second=0, microsecond=0)
     session.clock_out_time = clock_out_time
     session.hours_worked = round((clock_out_time - session.clock_in_time).total_seconds() / 3600, 1)
+    session_edit = Edit(session_id=session.id, date_time=datetime.now(), changes=f"Clocked Out: {clock_out_time.strftime('%Y-%m-%d %H:%M:%S')}", comment="")
+    db.session.add(session_edit)
     db.session.commit()
     return jsonify({'message': f'Clocked out successfully',
                     'hours': session.hours_worked,
