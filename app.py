@@ -22,9 +22,9 @@ if not base_url.endswith('/'):
 app = Flask(__name__, static_url_path=base_url + 'static')
 
 # Ensure the config directory exists
-# os.makedirs('/config', exist_ok=True)
+os.makedirs('/config', exist_ok=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///work_hours.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////config/work_hours.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
