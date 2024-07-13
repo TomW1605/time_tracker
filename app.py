@@ -33,6 +33,7 @@ class WorkSession(db.Model):
     hours_worked = db.Column(db.Float, nullable=True)
     clock_in_time = db.Column(db.DateTime, nullable=True)
     clock_out_time = db.Column(db.DateTime, nullable=True)
+    comment = db.Column(db.Text, nullable=True)
 
     def __repr__(self):
         return f'<WorkSession({self.id}, {self.session_type}, {self.date}, {self.hours_worked}, {self.clock_in_time}, {self.clock_out_time})>'
@@ -124,6 +125,7 @@ def api_edit_session(id):
 
         if clock_in_time and clock_out_time:
             session.hours_worked = round((clock_out_time - clock_in_time).total_seconds() / 3600, 1)
+    session.comment = data['comment']
     db.session.commit()
     return jsonify({'message': 'Session updated successfully'}), 200
 
@@ -181,7 +183,8 @@ def api_get_session(id):
         'date': session.date.strftime('%Y-%m-%d'),
         'hours_worked': session.hours_worked,
         'clock_in_time': session.clock_in_time.strftime('%H:%M:%S') if session.clock_in_time else None,
-        'clock_out_time': session.clock_out_time.strftime('%H:%M:%S') if session.clock_out_time else None
+        'clock_out_time': session.clock_out_time.strftime('%H:%M:%S') if session.clock_out_time else None,
+        'comment': session.comment
     }
     return jsonify(session_data)
 
