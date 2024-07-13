@@ -30,7 +30,7 @@
                     const header = document.createElement('tr');
                     header.className = 'edit-row edit-header';
                     header.innerHTML = `
-                <th>ID</th>
+{#                <th>ID</th>#}
                 <th>Date</th>
                 <th>Changes</th>
                 <th>Comment</th>
@@ -41,9 +41,9 @@
                         const editRow = document.createElement('tr');
                         editRow.className = 'edit-row';
 
-                        const idCell = document.createElement('td');
-                        idCell.textContent = edit.id;
-                        editRow.appendChild(idCell);
+                        {#const idCell = document.createElement('td');#}
+                        {#idCell.textContent = edit.id;#}
+                        {#editRow.appendChild(idCell);#}
 
                         const date_timeCell = document.createElement('td');
                         date_timeCell.textContent = edit.date_time;

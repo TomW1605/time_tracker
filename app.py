@@ -67,11 +67,14 @@ def api_log_hours():
     hours_worked = float(data['hours_worked'])
     new_session = WorkSession(session_type='hours', date=datetime.strptime(date, '%Y-%m-%d').date(), hours_worked=round(hours_worked, 1))
     db.session.add(new_session)
+    db.session.commit()
+
     session_created = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Session Created", comment="")
     db.session.add(session_created)
     session_edit = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Logged Hours: {hours_worked}", comment="")
     db.session.add(session_edit)
     db.session.commit()
+
     return jsonify({'message': 'Logged hours successfully'}), 201
 
 @app.route(base_url + 'api/clock_in', methods=['POST'])
@@ -87,11 +90,14 @@ def api_clock_in():
     clock_in_time = datetime.combine(date, time).replace(second=0, microsecond=0)
     new_session = WorkSession(session_type='clocked', date=clock_in_time.date(), clock_in_time=clock_in_time)
     db.session.add(new_session)
+    db.session.commit()
+
     session_created = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Session Created", comment="")
     db.session.add(session_created)
     session_edit = Edit(session_id=new_session.id, date_time=datetime.now(), changes=f"Clocked In: {clock_in_time.strftime('%Y-%m-%d %H:%M:%S')}", comment="")
     db.session.add(session_edit)
     db.session.commit()
+
     if date.weekday() == 4: #if friday
         # print(hours_this_week)
         hours_remaining = (hours_per_day*days_per_week)-hours_this_week
