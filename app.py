@@ -20,9 +20,9 @@ if not base_url.endswith('/'):
 app = Flask(__name__, static_url_path=base_url + 'static')
 
 # Ensure the config directory exists
-os.makedirs('/config', exist_ok=True)
+# os.makedirs('/config', exist_ok=True)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:////config/work_hours.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///work_hours.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -236,7 +236,7 @@ def get_today_hours_deficit():
     return today_deficit
 
 def get_week_hours_deficit(now:datetime = datetime.now()):
-    if now.isocalendar()[1] == datetime.now().isocalendar()[1]:
+    if now.isocalendar()[1] == datetime.now().isocalendar()[1] and datetime.now().weekday() < 5:
         week_target = hours_per_day * (datetime.now().weekday()+1)
     else:
         week_target = hours_per_day * days_per_week
