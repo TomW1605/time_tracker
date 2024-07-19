@@ -36,6 +36,7 @@ class WorkSession(db.Model):
     clock_in_time = db.Column(db.DateTime, nullable=True)
     clock_out_time = db.Column(db.DateTime, nullable=True)
     comment = db.Column(db.Text, nullable=True)
+    deleted = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<WorkSession({self.id}, {self.session_type}, {self.date}, {self.hours_worked}, {self.clock_in_time}, {self.clock_out_time})>'
@@ -112,7 +113,7 @@ def api_clock_in():
 @app.route(base_url + 'api/clock_out', methods=['POST'])
 def api_clock_out():
     data = request.get_json()
-    session = WorkSession.query.filter_by(session_type='clocked', clock_out_time=None).order_by(WorkSession.clock_in_time.desc()).first()
+    session = WorkSession.query.filter_by(session_type='clocked', clock_out_time=None, deleted=False).order_by(WorkSession.clock_in_time.desc()).first()
     if not session:
         return jsonify({
             'error': 'No active clock-in session found',
@@ -193,7 +194,7 @@ def api_edit_session(id):
 
 @app.route(base_url + 'api/get_sessions', methods=['GET'])
 def api_get_sessions():
-    sessions = WorkSession.query.all()
+    sessions = WorkSession.query.filter(WorkSession.deleted == False).all()
     sessions_list = [
         {
             'id': session.id,
@@ -209,7 +210,7 @@ def api_get_sessions():
 
 @app.route(base_url + 'api/get_sessions_grouped', methods=['GET'])
 def api_get_sessions_grouped():
-    sessions = WorkSession.query.all()
+    sessions = WorkSession.query.filter(WorkSession.deleted == False).all()
     weeks = {}
     for session in sessions:
         start_of_week = session.date - timedelta(days=session.date.weekday())
@@ -264,7 +265,9 @@ def api_get_session(id):
 @app.route(base_url + 'api/delete_session/<int:id>', methods=['DELETE'])
 def api_delete_session(id):
     session = WorkSession.query.get_or_404(id)
-    db.session.delete(session)
+    session.deleted = True
+    session_edit = Edit(session_id=session.id, date_time=datetime.now(), changes=f"Session Deleted", comment="")
+    db.session.add(session_edit)
     db.session.commit()
     return jsonify({'message': 'Session deleted successfully'}), 200
 
@@ -280,8 +283,8 @@ def api_get_hours():
 
 def get_hours_today():
     today = datetime.now().date()
-    complete_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0).all()
-    running_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked == None).all()
+    complete_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked > 0, WorkSession.deleted == False).all()
+    running_sessions = WorkSession.query.filter(WorkSession.date == today, WorkSession.hours_worked == None, WorkSession.deleted == False).all()
     # print(running_sessions)
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
@@ -292,15 +295,15 @@ def get_hours_week(now = datetime.now()):
         now = now.date()
     start_of_week = now - timedelta(days=now.weekday())
     end_of_week = start_of_week + timedelta(days=6)
-    complete_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked > 0).all()
-    running_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked == None).all()
+    complete_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked > 0, WorkSession.deleted == False).all()
+    running_sessions = WorkSession.query.filter(WorkSession.date >= start_of_week, WorkSession.date <= end_of_week, WorkSession.hours_worked == None, WorkSession.deleted == False).all()
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
 
 def get_hours_all_time():
-    complete_sessions = WorkSession.query.filter(WorkSession.hours_worked > 0).all()
-    running_sessions = WorkSession.query.filter(WorkSession.hours_worked == None).all()
+    complete_sessions = WorkSession.query.filter(WorkSession.hours_worked > 0, WorkSession.deleted == False).all()
+    running_sessions = WorkSession.query.filter(WorkSession.hours_worked == None, WorkSession.deleted == False).all()
     total_hours = (sum(session.hours_worked for session in complete_sessions) +
                    sum(round((datetime.now() - session.clock_in_time).total_seconds() / 3600, 1) for session in running_sessions))
     return round(total_hours, 1)
@@ -320,7 +323,7 @@ def get_week_hours_deficit(now:datetime = datetime.now()):
     return week_deficit
 
 def get_all_time_deficit():
-    sessions = WorkSession.query.all()
+    sessions = WorkSession.query.filter(WorkSession.deleted == False).all()
     weeks = []
     for session in sessions:
         week = session.date - timedelta(days=session.date.weekday())
