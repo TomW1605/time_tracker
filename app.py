@@ -80,8 +80,10 @@ def api_log_hours():
 
 @app.route(base_url + 'api/clock_in', methods=['POST'])
 def api_clock_in():
-    hours_this_week = get_hours_week()
     hours_today = get_hours_today()
+
+    hours_short_this_week = get_week_hours_deficit()
+    hours_banked_total = get_all_time_deficit() * -1
 
     data = request.get_json()
     now = datetime.now()
@@ -100,8 +102,12 @@ def api_clock_in():
     db.session.commit()
 
     if date.weekday() == 4: #if friday
+        hours_remaining = hours_short_this_week
+        if hours_short_this_week > 0: #if i am short hours this week
+            if (hours_banked_total + (hours_per_day - hours_today)) > (hours_short_this_week - (hours_per_day - hours_today)):
+                hours_remaining = hours_per_day - hours_today
         # print(hours_this_week)
-        hours_remaining = (hours_per_day*days_per_week)-hours_this_week
+        # hours_remaining = (hours_per_day*days_per_week)-hours_this_week
         # print(hours_remaining)
         leave_time = clock_in_time + timedelta(hours=hours_remaining)
         # print(leave_time.strftime('%H:%M:%S'))
