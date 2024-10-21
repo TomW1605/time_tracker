@@ -84,3 +84,6 @@ input[type="text"], input[type="number"], input[type="date"], input[type="time"]
     background-color: #3c3c3c;
     font-weight: bold;
 }
+.last-update {
+    font-size: 12px;
+}

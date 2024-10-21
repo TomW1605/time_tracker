@@ -18,6 +18,13 @@
         return compareDates(a_date, b_date);
     }
 
+    function formatedTimestamp() {
+        const d = new Date()
+        const date = d.toISOString().split('T')[0];
+        const time = d.toTimeString().split(' ')[0];
+        return `${date} ${time}`
+    }
+
     function loadHours() {
         fetch("{{ url_for('api_get_hours') }}")
         .then(response => response.json())
@@ -194,16 +201,17 @@
     function reloadSummary() {
         loadGroupedSessions();
         loadHours();
+        document.getElementById('lastUpdateTime').innerText = formatedTimestamp();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        loadGroupedSessions();
-        loadHours();
+        reloadSummary();
     });
 </script>
 <h2>Summary</h2>
 <div id="hours"></div>
 <button onclick="reloadSummary()" style="margin-bottom: 8px;">Refresh</button>
+<span class="last-update">Last Updated: </span><span id="lastUpdateTime" class="last-update"></span>
 <table class="week-table">
     <tbody id="groupedSessionsContainer">
         <!-- Grouped sessions will be loaded here by JavaScript -->
