@@ -66,7 +66,8 @@ def api_log_hours():
     data = request.get_json()
     date = data['date']
     hours_worked = float(data['hours_worked'])
-    new_session = WorkSession(session_type='hours', date=datetime.strptime(date, '%Y-%m-%d').date(), hours_worked=round(hours_worked, 1))
+    comment = data['comment']
+    new_session = WorkSession(session_type='hours', date=datetime.strptime(date, '%Y-%m-%d').date(), hours_worked=round(hours_worked, 1), comment=comment)
     db.session.add(new_session)
     db.session.commit()
 
