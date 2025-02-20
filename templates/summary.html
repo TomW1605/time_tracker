@@ -107,6 +107,7 @@
                         <th>Hours Worked</th>
                         <th>Clock In</th>
                         <th>Clock Out</th>
+                        <th>Comment</th>
                         <th>Edit</th>
                     `;
                     sessionHeader.dataset.week = week;
@@ -140,6 +141,10 @@
                         const clockOutCell = document.createElement('td');
                         clockOutCell.textContent = session.clock_out_time;
                         sessionRow.appendChild(clockOutCell);
+
+                        const commentCell = document.createElement('td');
+                        commentCell.textContent = session.comment;
+                        sessionRow.appendChild(commentCell);
 
                         const editCell = document.createElement('td');
                         const editLink = document.createElement('a');

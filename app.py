@@ -236,7 +236,8 @@ def api_get_sessions_grouped():
             'date': session.date.strftime('%Y-%m-%d'),
             'hours_worked': session.hours_worked,
             'clock_in_time': session.clock_in_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_in_time else None,
-            'clock_out_time': session.clock_out_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_out_time else None
+            'clock_out_time': session.clock_out_time.strftime('%Y-%m-%d %H:%M:%S') if session.clock_out_time else None,
+            'comment': session.comment
         })
 
     for week in weeks:
