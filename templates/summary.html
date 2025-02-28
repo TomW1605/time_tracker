@@ -171,6 +171,7 @@
                     }
                 }
             });
+            document.getElementById('lastUpdateTime').innerText = formatedTimestamp();
         })
         .catch(error => console.error('Error:', error));
     }
@@ -206,7 +207,6 @@
     function reloadSummary() {
         loadGroupedSessions();
         loadHours();
-        document.getElementById('lastUpdateTime').innerText = formatedTimestamp();
     }
 
     document.addEventListener('DOMContentLoaded', function() {
