@@ -1,0 +1,19 @@
+<script>
+    function exportCSV() {
+        const last_imported_id = document.getElementById('last_imported_id').value;
+
+        if (!last_imported_id) {
+            alert('Please enter a valid Last Imported ID.');
+            return;
+        }
+
+        const start_id = parseInt(last_imported_id) + 1;
+
+        window.location.href = "{{ url_for('api_csv_export') }}?" + new URLSearchParams({ start_id: start_id.toString() }).toString();
+    }
+</script>
+<h2>Export</h2>
+<form onsubmit="event.preventDefault(); exportCSV();">
+    Last Imported ID: <input type="number" id="last_imported_id" name="last_imported_id" required><br>
+    <input type="submit" value="Export CSV">
+</form>

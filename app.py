@@ -1,4 +1,6 @@
+import csv
 import os
+from io import StringIO
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -287,6 +289,29 @@ def api_get_hours():
         'today_deficit': get_today_hours_deficit(),
         'week_deficit': get_week_hours_deficit(),
         'all_time_deficit': get_all_time_deficit()
+    })
+
+@app.route(base_url + 'api/csv_export', methods=['GET'])
+def api_csv_export():
+    start_id = request.args.get('start_id', 0)
+
+    sessions = WorkSession.query.filter(WorkSession.deleted == False).filter(WorkSession.hours_worked is not None).filter(WorkSession.id >= start_id).all()
+
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['ID', 'Date', 'Hours', 'Comment'])
+    for session in sessions:
+        comment = f"Comment: {session.comment if session.comment else "N\A"}\nID: {session.id}"
+        cw.writerow([
+            session.id,
+            session.date.strftime('%Y-%m-%d'),
+            session.hours_worked,
+            comment
+        ])
+    output = si.getvalue()
+    return (output, 200, {
+        'Content-Type': 'text/csv',
+        'Content-Disposition': 'attachment; filename="work_sessions.csv"'
     })
 
 def get_hours_today():

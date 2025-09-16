@@ -38,6 +38,11 @@
         {% include 'clock_out.html' %}
     </div>
 
+    <p><a href="javascript:void(0);" onclick="toggleSection('exportSection')">Export</a></p>
+    <div id="exportSection" class="hidden">
+        {% include 'export.html' %}
+    </div>
+
     <p><a href="javascript:void(0);" onclick="toggleSection('summarySection')">View Summary</a></p>
     <div id="summarySection" class>
         {% include 'summary.html' %}
