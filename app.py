@@ -301,7 +301,8 @@ def api_csv_export():
     cw = csv.writer(si)
     cw.writerow(['ID', 'Date', 'Hours', 'Comment'])
     for session in sessions:
-        comment = f"Comment: {session.comment if session.comment else 'N\A'}\nID: {session.id}"
+        session_comment = session.comment if session.comment else 'N\A'
+        comment = f"Comment: {session_comment}\nID: {session.id}"
         cw.writerow([
             session.id,
             session.date.strftime('%Y-%m-%d'),
